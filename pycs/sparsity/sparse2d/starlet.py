@@ -30,6 +30,7 @@ Created on Mar 30, 2015
         r = CW.recons()       #  reconstruct an image from its coefficients
     more examples are given at the end of this file.
 """
+
 import warnings
 import numpy as np
 import scipy.signal as psg
@@ -54,9 +55,7 @@ except ImportError:
 #    PYSAP_CXX = True
 
 if PYSAP_CXX is False:
-    warnings.warn(
-        "pysap bindings not found ==> use slow python code."
-    )
+    warnings.warn("pysap bindings not found ==> use slow python code.")
 
 # print("PYSAP_CXX = ", PYSAP_CXX)
 
@@ -137,33 +136,31 @@ def b3spline_fast(step):
     return kernel2d
 
 
-def vectorize(signature):
-    def decor(func):
-        """
-        Decorator to vectorize methods in class `MRStarlet`
+if PYSAP_CXX:
 
-        """
+    def _vectorize(signature):
+        def decor(func):
+            """Decorator to vectorize methods in class `MRStarlet`"""
 
-        def wrapper(self, im, *args, **kwargs):
-            return np.vectorize(
-                lambda x: func(self, x, *args, **kwargs), signature=signature
-            )(im)
+            def wrapper(self, im, *args, **kwargs):
+                return np.vectorize(
+                    lambda x: func(self, x, *args, **kwargs), signature=signature
+                )(im)
 
-        return wrapper
+            return wrapper
 
-    return decor
+        return decor
 
+    class MRStarlet(pysparse.MRStarlet):
+        @_vectorize(signature="(n,m)->(p,n,m)")
+        def transform(self, im, nz, *args, **kwargs):
+            wl = super().transform(im.astype(np.float64), nz, *args, **kwargs)
+            return np.stack(wl).astype(np.float64)
 
-class MRStarlet(pysparse.MRStarlet):
-    @vectorize(signature="(n,m)->(p,n,m)")
-    def transform(self, im, nz, *args, **kwargs):
-        wl = super().transform(im.astype(np.float64), nz, *args, **kwargs)
-        return np.stack(wl).astype(np.float64)
-
-    @vectorize(signature="(p,n,m)->(n,m)")
-    def recons(self, wt, *args, **kwargs):
-        wl = list(wt.astype(np.float64))
-        return super().recons(wl, *args, **kwargs).astype(np.float64)
+        @_vectorize(signature="(p,n,m)->(n,m)")
+        def recons(self, wt, *args, **kwargs):
+            wl = list(wt.astype(np.float64))
+            return super().recons(wl, *args, **kwargs).astype(np.float64)
 
 
 def star2d(im, scale, gen2=False, bord=1, nb_procs=0, fast=True, verb=0):
