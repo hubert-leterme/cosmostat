@@ -30,7 +30,7 @@ Created on Mar 30, 2015
         r = CW.recons()       #  reconstruct an image from its coefficients
     more examples are given at the end of this file.
 """
-
+import warnings
 import numpy as np
 import scipy.signal as psg
 
@@ -54,8 +54,8 @@ except ImportError:
 #    PYSAP_CXX = True
 
 if PYSAP_CXX is False:
-    print(
-        "Warning in starlet.py: do not find pysap bindings ==> use slow python code. "
+    warnings.warn(
+        "pysap bindings not found ==> use slow python code."
     )
 
 # print("PYSAP_CXX = ", PYSAP_CXX)
