@@ -20,9 +20,16 @@ include(FindPkgConfig)
 find_package(Python COMPONENTS Interpreter Development)
 message(STATUS "Python binding install path : ${Python_EXECUTABLE}")
 
-# Set install directory for Sparse2D binaries
-get_filename_component(SPARSE2D_INSTALL_DIR ${Python_EXECUTABLE} DIRECTORY)
-message(STATUS "Binary install path : ${SPARSE2D_INSTALL_DIR}")
+# Add an option to build or skip Sparse2D
+option(BUILD_SPARSE2D "Build the Sparse2D binaries" OFF)
 
-# Build Sparse2D
-include(BuildSparse2D)
+if(BUILD_SPARSE2D)
+    # Set install directory for Sparse2D binaries
+    get_filename_component(SPARSE2D_INSTALL_DIR ${Python_EXECUTABLE} DIRECTORY)
+    message(STATUS "Binary install path : ${SPARSE2D_INSTALL_DIR}")
+
+    # Build Sparse2D
+    include(BuildSparse2D)
+else()
+    message(STATUS "Skipping Sparse2D build.")
+endif()
